@@ -1,2 +1,2 @@
 # webframework_perfomance_test
-Perfomance test of different web framewords for API case
+Perfomance test of different web frameworks for API case
