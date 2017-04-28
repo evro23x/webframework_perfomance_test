@@ -6,8 +6,9 @@ from aiohttp import web
 from motor.motor_asyncio import AsyncIOMotorClient
 
 
-def is_news_item_valid(news_item):
-    return 'id' in news_item
+async def is_news_item_valid(news_item, engine):
+    real_result = 'id' in news_item and not await engine.news.find({'id': news_item['id']}).count()
+    return True
 
 
 async def test(request):
@@ -17,9 +18,10 @@ async def test(request):
 async def add_news_handle(request):
     data = await request.json()
 
-    if is_news_item_valid(data):
+    is_valid = await is_news_item_valid(data, request.app['engine'])
+    if is_valid:
         data['date_added'] = datetime.now()
-        result = await request.app['engine'].news.insert_one(data)
+        result = request.app['engine'].news.insert_one(data)
         return web.Response(text="Ok")
     else:
         return web.HTTPBadRequest(text="Id not found")
@@ -34,6 +36,7 @@ def app():
     return _app
 
 
+APP = app()
+
 if __name__ == "__main__":
-    the_app = app()
-    web.run_app(the_app, host='0.0.0.0', port=8000)
+    web.run_app(APP, host='0.0.0.0', port=8000)
